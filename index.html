@@ -1,0 +1,625 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkSync | Smart Parking Control</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: #080f1d;
+            color: #edf3ff;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .topbar {
+            background: #0c1526;
+            border-bottom: 1px solid #1d2b42;
+            padding: 20px 6%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            background: #635bff;
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .brand h2 { margin: 0; font-size: 19px; }
+        .brand p { margin: 5px 0 0; color: #8fa8d0; font-size: 10px; }
+
+        .live-badge {
+            color: #20d6a4;
+            background: #12352f;
+            border: 1px solid #205347;
+            padding: 10px 15px;
+            border-radius: 22px;
+            font-size: 10px;
+        }
+
+        .container {
+            max-width: 1050px;
+            margin: auto;
+            padding: 30px 22px;
+        }
+
+        .eyebrow {
+            color: #438cff;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+        }
+
+        h1 { font-size: 23px; margin: 12px 0 8px; }
+
+        .subtitle {
+            color: #8fa8d0;
+            font-size: 13px;
+            margin: 0 0 22px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 22px 0 35px;
+        }
+
+        .panel {
+            background: #142035;
+            border: 1px solid #263651;
+            border-radius: 17px;
+        }
+
+        .summary-card { padding: 22px 20px; }
+
+        .label {
+            color: #8fa8d0;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .number {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 18px 0 6px;
+        }
+
+        .small { color: #8fa8d0; font-size: 11px; }
+
+        .area-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .area-heading h2 { font-size: 17px; margin: 0; }
+        .legend { font-size: 10px; color: #8fa8d0; }
+        .legend span { margin-left: 10px; }
+
+        .green-dot, .red-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+
+        .green-dot { background: #20d6a4; }
+        .red-dot { background: #ff537b; }
+
+        .area-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .area-card { padding: 18px; min-width: 0; }
+
+        .area-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .area-title h3 { margin: 4px 0 12px; font-size: 16px; }
+
+        .area-description {
+            color: #819ac0;
+            font-size: 10px;
+            letter-spacing: .6px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .area-icon {
+            background: #263c60;
+            padding: 10px 13px;
+            border-radius: 11px;
+        }
+
+        /* Live camera button */
+        .camera-button {
+            display: inline-block;
+            background: #285da8;
+            color: #fff;
+            border: 1px solid #438cff;
+            padding: 10px 14px;
+            border-radius: 9px;
+            cursor: pointer;
+            margin: 0 0 15px;
+            font-size: 12px;
+        }
+
+        .camera-button:hover { background: #3675ce; }
+
+        .slots {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 9px;
+        }
+
+        .slot {
+            background: linear-gradient(145deg, #123b37, #12302f);
+            border: 1px solid #17664f;
+            border-radius: 15px;
+            min-height: 165px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .slot.occupied {
+            background: linear-gradient(145deg, #492335, #2d1b2a);
+            border-color: #9d365b;
+        }
+
+        .slot-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: .5px;
+            color: #c6d5ef;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #20d6a4;
+            border-radius: 50%;
+        }
+
+        .occupied .status-dot { background: #ff537b; }
+
+        .parking-symbol {
+            height: 70px;
+            width: 80%;
+            max-width: 160px;
+            margin: 22px auto 10px;
+            background: #0b1526;
+            border: 1px dashed #30415c;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .p-symbol {
+            height: 45px;
+            width: 45px;
+            background: linear-gradient(135deg, #3985ed, #2857a5);
+            border-radius: 9px;
+            color: #a9ceff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .slot-status {
+            color: #20d6a4;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: .7px;
+            margin-bottom: 9px;
+        }
+
+        .occupied .slot-status { color: #ff7395; }
+        .distance { color: #8fa8d0; font-size: 10px; }
+
+        .area-footer {
+            border-top: 1px solid #263651;
+            padding-top: 15px;
+            margin-top: 18px;
+            display: flex;
+            justify-content: space-between;
+            color: #8fa8d0;
+            font-size: 10px;
+        }
+
+        .progress {
+            width: 55px;
+            height: 5px;
+            background: #2b3c56;
+            border-radius: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .info-card { padding: 18px; }
+        .info-card h4 { margin: 12px 0 7px; font-size: 13px; }
+        .info-card p {
+            margin: 0;
+            color: #8fa8d0;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .footer {
+            text-align: center;
+            color: #7188ad;
+            font-size: 10px;
+            margin: 25px 0 5px;
+        }
+
+        /* Camera popup */
+        .camera-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            padding: 18px;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, .8);
+        }
+
+        .camera-dialog {
+            width: min(680px, 100%);
+            background: #142035;
+            border: 1px solid #304362;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 20px 60px #0008;
+        }
+
+        .camera-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .camera-header h3 { margin: 0; font-size: 16px; }
+
+        .close-camera {
+            background: #263b5c;
+            color: white;
+            border: 0;
+            border-radius: 8px;
+            padding: 9px 12px;
+            cursor: pointer;
+        }
+
+        #camera-image {
+            display: block;
+            width: 100%;
+            min-height: 100px;
+            background: #080f1d;
+            border-radius: 10px;
+        }
+
+        #camera-message {
+            color: #8fa8d0;
+            font-size: 12px;
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 760px) {
+            .summary, .area-grid, .info-grid { grid-template-columns: 1fr; }
+            .container { padding: 22px 14px; }
+        }
+
+        @media (max-width: 400px) {
+            .slots { grid-template-columns: 1fr; }
+            .topbar { padding: 16px; }
+        }
+    </style>
+</head>
+
+<body>
+<header class="topbar">
+    <div class="brand">
+        <div class="brand-icon">🚘</div>
+        <div>
+            <h2>ParkSync</h2>
+            <p>INTELLIGENT PARKING MANAGEMENT</p>
+        </div>
+    </div>
+    <div class="live-badge">LIVE SENSOR DATA</div>
+</header>
+
+<main class="container">
+    <div class="eyebrow">CONTROL CENTER / OVERVIEW</div>
+    <h1>Parking at a glance.</h1>
+    <p class="subtitle">Monitor your parking areas from one central dashboard.</p>
+
+    <section class="summary">
+        <div class="panel summary-card">
+            <div class="label">Total capacity ▦</div>
+            <div class="number" id="total-slots">{{ total_slots }}</div>
+            <div class="small">Monitored parking slots</div>
+        </div>
+
+        <div class="panel summary-card">
+            <div class="label">Occupied slots 🚘</div>
+            <div class="number" id="occupied-slots">{{ occupied_slots }}</div>
+            <div class="small">Based on sensor readings</div>
+        </div>
+
+        <div class="panel summary-card">
+            <div class="label">Available slots ✓</div>
+            <div class="number" id="available-slots">{{ available_slots }}</div>
+            <div class="small">Based on sensor readings</div>
+        </div>
+    </section>
+
+    <div class="area-heading">
+        <h2>Parking facilities</h2>
+        <div class="legend">
+            <span><i class="red-dot"></i>Occupied</span>
+            <span><i class="green-dot"></i>Available</span>
+        </div>
+    </div>
+
+    <section class="area-grid">
+        {% for area_name, slots in areas.items() %}
+        <div class="panel area-card">
+            <div class="area-title">
+                <h3>{{ area_name }}</h3>
+                <span class="area-icon">↕</span>
+            </div>
+
+            <div class="area-description">
+                Parking facility ·
+                {% if area_name == "Area A" %}2 bays{% else %}Slot 3 monitored{% endif %}
+            </div>
+
+            {% if area_name == "Area A" %}
+            <button type="button" class="camera-button" onclick="openCamera()">
+                📷 Live Camera
+            </button>
+            {% endif %}
+
+            <div class="slots">
+                {% for slot in slots %}
+                <div class="slot {% if slot.occupied %}occupied{% endif %}"
+                     id="slot-{{ slot.id }}">
+                    <div class="slot-label">
+                        <span>BAY {{ "%02d"|format(slot.id) }}</span>
+                        <span class="status-dot"></span>
+                    </div>
+
+                    <div class="parking-symbol">
+                        <div class="p-symbol">P</div>
+                    </div>
+
+                    <div class="slot-status" id="status-{{ slot.id }}">
+                        {% if slot.id == 4 %}
+                            NOT MONITORED
+                        {% elif slot.distance is none %}
+                            WAITING FOR DATA
+                        {% elif slot.occupied %}
+                            OCCUPIED
+                        {% else %}
+                            AVAILABLE
+                        {% endif %}
+                    </div>
+
+                    <div class="distance" id="distance-{{ slot.id }}">
+                        {% if slot.id == 4 %}
+                            Slot ignored
+                        {% elif slot.distance is none %}
+                            Distance: --
+                        {% else %}
+                            Distance: {{ "%.2f"|format(slot.distance) }} cm
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="area-footer">
+                <span id="area-count-{{ loop.index }}">0/{{ 2 if area_name == "Area A" else 1 }} occupied</span>
+                <span class="progress"></span>
+                <span id="area-free-{{ loop.index }}">0 free</span>
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+
+    <section class="info-grid">
+        <div class="panel info-card">
+            <div class="eyebrow">NETWORK ARCHITECTURE</div>
+            <h4>ESP32 → Wi-Fi → Flask</h4>
+            <p>Sensor readings delivered to the laptop server</p>
+        </div>
+
+        <div class="panel info-card">
+            <div class="eyebrow">AREA A NODE</div>
+            <h4 id="area-a-node">Waiting for data</h4>
+            <p>Slots 1 and 2</p>
+        </div>
+
+        <div class="panel info-card">
+            <div class="eyebrow">AREA B NODE</div>
+            <h4 id="area-b-node">Waiting for data</h4>
+            <p>Slot 3 monitored; Slot 4 ignored</p>
+        </div>
+    </section>
+
+    <div class="footer">
+        Last refreshed: <span id="last-refreshed">--</span>
+        · Auto-refresh every 2 seconds
+    </div>
+</main>
+
+<!-- Camera dialog -->
+<div id="camera-modal" class="camera-modal">
+    <div class="camera-dialog">
+        <div class="camera-header">
+            <h3>Area A — Live Camera</h3>
+            <button type="button" onclick="closeCamera()" class="close-camera">✕</button>
+        </div>
+        <img id="camera-image" alt="External webcam live preview">
+        <p id="camera-message">Camera preview is closed.</p>
+    </div>
+</div>
+
+<script>
+async function refreshDashboard() {
+    try {
+        const response = await fetch("/api/status", { cache: "no-store" });
+        if (!response.ok) throw new Error("Status request failed");
+
+        const data = await response.json();
+
+        document.getElementById("total-slots").textContent = data.total_slots;
+        document.getElementById("occupied-slots").textContent = data.occupied_slots;
+        document.getElementById("available-slots").textContent = data.available_slots;
+
+        for (const [areaName, slots] of Object.entries(data.areas)) {
+            let occupiedCount = 0;
+            let freeCount = 0;
+            let hasData = false;
+
+            for (const slot of slots) {
+                const card = document.getElementById(`slot-${slot.id}`);
+                const status = document.getElementById(`status-${slot.id}`);
+                const distance = document.getElementById(`distance-${slot.id}`);
+
+                if (!card || !status || !distance) continue;
+
+                if (slot.id === 4) {
+                    status.textContent = "NOT MONITORED";
+                    distance.textContent = "Slot ignored";
+                    card.classList.remove("occupied");
+                    continue;
+                }
+
+                if (slot.distance === null || slot.distance === undefined) {
+                    status.textContent = "WAITING FOR DATA";
+                    distance.textContent = "Distance: --";
+                    card.classList.remove("occupied");
+                    continue;
+                }
+
+                hasData = true;
+                distance.textContent =
+                    `Distance: ${Number(slot.distance).toFixed(2)} cm`;
+
+                if (slot.occupied) {
+                    card.classList.add("occupied");
+                    status.textContent = "OCCUPIED";
+                    occupiedCount++;
+                } else {
+                    card.classList.remove("occupied");
+                    status.textContent = "AVAILABLE";
+                    freeCount++;
+                }
+            }
+
+            if (areaName === "Area A") {
+                document.getElementById("area-a-node").textContent =
+                    hasData ? "Receiving live data" : "Waiting for data";
+                document.getElementById("area-count-1").textContent =
+                    `${occupiedCount}/2 occupied`;
+                document.getElementById("area-free-1").textContent =
+                    `${freeCount} free`;
+            }
+
+            if (areaName === "Area B") {
+                document.getElementById("area-b-node").textContent =
+                    hasData ? "Receiving live data" : "Waiting for data";
+                document.getElementById("area-count-2").textContent =
+                    `${occupiedCount}/1 occupied`;
+                document.getElementById("area-free-2").textContent =
+                    `${freeCount} free`;
+            }
+        }
+
+        document.getElementById("last-refreshed").textContent =
+            new Date().toLocaleTimeString();
+
+    } catch (error) {
+        console.error("Dashboard refresh failed:", error);
+    }
+}
+
+function openCamera() {
+    const modal = document.getElementById("camera-modal");
+    const image = document.getElementById("camera-image");
+    const message = document.getElementById("camera-message");
+
+    modal.style.display = "flex";
+    message.textContent = "Connecting to external camera...";
+
+    image.onload = function() {
+        message.textContent = "Live preview from external camera (index 1).";
+    };
+
+    image.onerror = function() {
+        message.textContent =
+            "Camera unavailable. Check that webcam index 1 is connected and not in use.";
+    };
+
+    image.src = "/camera_feed?t=" + Date.now();
+}
+
+function closeCamera() {
+    const modal = document.getElementById("camera-modal");
+    const image = document.getElementById("camera-image");
+
+    modal.style.display = "none";
+    image.onload = null;
+    image.onerror = null;
+    image.src = "";
+
+    document.getElementById("camera-message").textContent =
+        "Camera preview is closed.";
+}
+
+document.getElementById("camera-modal").addEventListener("click", function(event) {
+    if (event.target === this) closeCamera();
+});
+
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") closeCamera();
+});
+
+refreshDashboard();
+setInterval(refreshDashboard, 2000);
+</script>
+</body>
+</html>
